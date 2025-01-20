@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Welcome</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			flex-direction: column;
+			margin: 0;
+		}
+
+		h1,
+		h2 {
+			margin: 10px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<h1>Goede<span id="groet-nederlands">dag</span> vreemdeling!<span id="tijdOmTeSlapen"></span></h1>
+	<h2>Neem gerust een kijkje om je heen en wie weet wat je tegen komt...</h2>
+
+	<script>
+		function updateTextOnLoad() {
+			const tijd = new Date();
+			const uren = tijd.getHours();
+
+			const groet = document.getElementById('groet-nederlands');
+      const slapenJij = document.getElementById('tijdOmTeSlapen');
+
+			if (uren >= 0 && uren < 6) {
+				// Nacht (00:00 - 06:00)
+				groet.textContent = "nacht";        // Goedenacht
+				tijdOmTeSlapen.textContent = " Misschien is het slim om te gaan slapen...";        // Veel te laat/vroeg, slapen jij
+			} else if (uren >= 6 && uren < 12) {
+				// Morning (06:00 - 12:00)
+				groet.textContent = "morgen";       // Goedemorgen
+			} else if (uren >= 12 && uren < 18) {
+				// Afternoon (12:00 - 18:00)
+				groet.textContent = "middag";       // Goedemiddag
+			} else {
+				// Evening (18:00 - 00:00)
+				groet.textContent = "avond";        // Goedeavond
+			}
+		}
+
+		// Run the function on page load
+		window.onload = updateTextOnLoad;
+	</script>
+
+</body>
+
+</html>
