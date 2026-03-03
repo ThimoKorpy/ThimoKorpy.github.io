@@ -42,28 +42,20 @@ input {
     border-radius:50%;
     border:8px solid white;
     position:relative;
+    overflow:hidden;
     transition: transform 5s cubic-bezier(0.15,0.8,0.2,1);
 }
 
-.segment {
+/* tekst labels */
+.label {
     position:absolute;
-    width:50%;
-    height:50%;
-    top:50%;
     left:50%;
-    transform-origin:0% 0%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
+    top:50%;
+    transform-origin:0 0;
+    font-size:13px;
     font-weight:bold;
-    text-align:center;
-    padding:5px;
-    box-sizing:border-box;
-}
-
-.segment span {
-    transform: rotate(90deg);
+    white-space:nowrap;
+    pointer-events:none;
 }
 
 .pointer {
@@ -75,7 +67,7 @@ input {
     height:0;
     border-left:15px solid transparent;
     border-right:15px solid transparent;
-    border-top:30px solid black; /* wijst naar beneden */
+    border-top:30px solid black;
     z-index:10;
 }
 
