@@ -1,7 +1,8 @@
+// == TEXEL DRINK RAD ==
+
 let scores = JSON.parse(localStorage.getItem("texelScores")) || {};
 let spinning = false;
 let currentRotation = 0;
-
 const SPIN_DURATION = 8000;
 
 const baseOptions = [
@@ -20,7 +21,7 @@ const colors = [
     "#cc33ff","#ff9933","#00cccc","#ff6699"
 ];
 
-const wheel = document.getElementById("wheel");
+const wheelSvg = document.getElementById("wheelSvg");
 const liveResult = document.getElementById("liveResult");
 const spinBtn = document.getElementById("spinBtn");
 
@@ -38,44 +39,50 @@ function checkTime(){
         : "😴 Tijd voor bed.";
 }
 
-/* =========================
-   WHEEL CREATION
-========================= */
-function createWheel(options){
+// 🎡 build SVG wheel
+function createSvgWheel(options){
+    wheelSvg.innerHTML=""; // clear
+
+    const center = 170; 
+    const radius = 150;
     const angle = 360 / options.length;
 
-    // Taart achtergrond
-    let gradient = "conic-gradient(";
-    options.forEach((_,i)=>{
-        const start = i*angle;
-        const end = (i+1)*angle;
-        gradient += `${colors[i % colors.length]} ${start}deg ${end}deg`;
-        if(i < options.length-1) gradient += ",";
-    });
-    gradient += ")";
-    wheel.style.background = gradient;
+    options.forEach((opt,i) => {
+        const startAngle = i*angle;
+        const endAngle = startAngle + angle;
 
-    // Oude labels verwijderen
-    wheel.querySelectorAll(".label").forEach(l=>l.remove());
+        // path for pie
+        const x1 = center + radius*Math.cos(Math.PI*(startAngle)/180);
+        const y1 = center + radius*Math.sin(Math.PI*(startAngle)/180);
+        const x2 = center + radius*Math.cos(Math.PI*(endAngle)/180);
+        const y2 = center + radius*Math.sin(Math.PI*(endAngle)/180);
 
-    // Radiale tekst (wijzend naar centrum)
-    options.forEach((option,i)=>{
-        const label = document.createElement("div");
-        label.className="label";
+        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        path.setAttribute("d",
+            `M${center},${center} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`);
+        path.setAttribute("fill", colors[i%colors.length]);
+        wheelSvg.appendChild(path);
 
-        const midAngle = i*angle + angle/2;
-
-        label.style.transform =
-            `rotate(${midAngle}deg) translate(0,-130px)`;
-
-        label.innerText = option;
-        wheel.appendChild(label);
+        // add label
+        const textAngle = startAngle + angle/2;
+        const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+        text.setAttribute("x",center);
+        text.setAttribute("y",center);
+        text.setAttribute("dominant-baseline","middle");
+        text.setAttribute("text-anchor","middle");
+        // position along radius
+        const tx = center + (radius/2)*Math.cos(Math.PI*textAngle/180);
+        const ty = center + (radius/2)*Math.sin(Math.PI*textAngle/180);
+        text.setAttribute("transform",
+            `translate(${tx},${ty}) rotate(${textAngle+90})`);
+        text.textContent = opt;
+        text.style.fontSize = "13px";
+        text.style.userSelect = "none";
+        wheelSvg.appendChild(text);
     });
 }
 
-/* =========================
-   SPIN LOGIC
-========================= */
+// 🎯 Spin logic
 function spinWheel(){
     if(spinning) return;
 
@@ -83,120 +90,57 @@ function spinWheel(){
     if(!name) return alert("Vul eerst je naam in!");
 
     let options=[...baseOptions];
-
-    // 🐍 Thimo sabotage
     if(name.toLowerCase()==="thimo"){
         options=[
-            "Geef 1 slok 😈",
-            "Geef 2 slokken 😈",
-            "Geef 3 slokken 😈",
-            "Geef een ATJE weg 😈🍻",
-            "Geef een ATJE weg 😈🍻",
-            "Geef een ATJE weg 😈🍻",
-            "Geef een ATJE weg 😈🍻"
+            "Geef 1 slok 😈","Geef 2 slokken 😈","Geef 3 slokken 😈",
+            "Geef een ATJE weg 😈🍻","Geef een ATJE weg 😈🍻",
+            "Geef een ATJE weg 😈🍻","Geef een ATJE weg 😈🍻"
         ];
     }
 
-    createWheel(options);
+    createSvgWheel(options);
 
-    const angle=360/options.length;
-    const randomIndex=Math.floor(Math.random()*options.length);
+    const angle = 360/options.length;
+    const randomIndex = Math.floor(Math.random()*options.length);
 
-    // Normalize huidige rotatie
     currentRotation = currentRotation % 360;
+    const targetAngle = 360 - (randomIndex*angle + angle/2);
+    const extraSpins = 8*360;
 
-    // Pointer staat op 0° (12 uur)
-    const targetAngle = 360 - (randomIndex * angle + angle/2);
-
-    const extraSpins = 8 * 360;
-
-    const totalRotation = currentRotation + extraSpins + targetAngle;
+    const total = currentRotation + extraSpins + targetAngle;
 
     spinning=true;
     spinBtn.disabled=true;
 
-    wheel.style.transition =
-        `transform ${SPIN_DURATION}ms cubic-bezier(0.1,0.9,0.2,1)`;
+    wheelSvg.style.transition = `transform ${SPIN_DURATION}ms cubic-bezier(0.1,0.9,0.2,1)`;
+    wheelSvg.style.transform = `rotate(${total}deg)`;
 
-    wheel.style.transform=`rotate(${totalRotation}deg)`;
-
-    const interval=setInterval(()=>{
-        const computed = getComputedStyle(wheel).transform;
+    const interval = setInterval(()=>{
+        const computed = getComputedStyle(wheelSvg).transform;
         if(computed==="none") return;
 
-        const matrix=new DOMMatrix(computed);
-        let deg=Math.atan2(matrix.b,matrix.a)*(180/Math.PI);
+        const matrix = new DOMMatrix(computed);
+        let deg = Math.atan2(matrix.b,matrix.a)*(180/Math.PI);
         if(deg<0) deg+=360;
 
-        const active =
-            Math.floor(((360 - deg) % 360) / angle);
-
-        liveResult.innerText=
-            options[active % options.length];
-
+        const idx = Math.floor(((360 - deg)%360)/angle);
+        liveResult.innerText = options[idx%options.length];
     },100);
 
     setTimeout(()=>{
         clearInterval(interval);
-
-        const result=options[randomIndex];
-        liveResult.innerText="🎉 "+result;
-
+        const result = options[randomIndex];
+        liveResult.innerText = "🎉 " + result;
         updateScores(name,result);
         if(result.includes("ATJE")) confettiBurst();
-
-        currentRotation = totalRotation % 360;
+        currentRotation = total % 360;
         spinning=false;
         spinBtn.disabled=false;
-
     },SPIN_DURATION);
 }
 
-/* =========================
-   SCORES
-========================= */
-function updateScores(name,result){
-    if(!scores[name]) scores[name]=0;
-    if(result.includes("Drink")||result==="ATJE!!! 🍻"){
-        scores[name]++;
-    }
-    localStorage.setItem("texelScores",JSON.stringify(scores));
-}
-
-function updateScoreBoard(){
-    const board=document.getElementById("scoreBoard");
-    board.innerHTML="";
-    for(let name in scores){
-        board.innerHTML+=`<p>${name}: ${scores[name]} drankjes</p>`;
-    }
-}
-
-function resetScores(){
-    localStorage.removeItem("texelScores");
-    scores={};
-    updateScoreBoard();
-}
-
-/* =========================
-   CONFETTI
-========================= */
-function confettiBurst(){
-    const canvas=document.getElementById("confetti");
-    const ctx=canvas.getContext("2d");
-
-    canvas.width=window.innerWidth;
-    canvas.height=window.innerHeight;
-
-    for(let i=0;i<300;i++){
-        ctx.fillStyle=`hsl(${Math.random()*360},100%,50%)`;
-        ctx.fillRect(
-            Math.random()*canvas.width,
-            Math.random()*canvas.height,
-            6,6
-        );
-    }
-
-    setTimeout(()=>{
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-    },2000);
-}
+// scores & confetti (same as before)
+function updateScores(name,result){if(!scores[name]) scores[name]=0; if(result.includes("Drink")||result==="ATJE!!! 🍻"){scores[name]++;} localStorage.setItem("texelScores",JSON.stringify(scores));}
+function updateScoreBoard(){document.getElementById("scoreBoard").innerHTML = Object.entries(scores).map(([n,s])=> `<p>${n}: ${s} drankjes</p>`).join("");}
+function resetScores(){localStorage.removeItem("texelScores"); scores={}; updateScoreBoard();}
+function confettiBurst(){ const canvas=document.getElementById("confetti"); const ctx=canvas.getContext("2d"); canvas.width=window.innerWidth; canvas.height=window.innerHeight; for(let i=0;i<300;i++){ ctx.fillStyle=`hsl(${Math.random()*360},100%,50%)`; ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,6,6);} setTimeout(()=>ctx.clearRect(0,0,canvas.width,canvas.height),2000);}
