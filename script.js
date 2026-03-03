@@ -2,7 +2,7 @@ let scores = JSON.parse(localStorage.getItem("texelScores")) || {};
 let spinning = false;
 let currentRotation = 0;
 
-const SPIN_DURATION = 8000; // 8 seconden 😈
+const SPIN_DURATION = 8000;
 
 const baseOptions = [
     "Drink 1 slok 🍺",
@@ -38,11 +38,13 @@ function checkTime(){
         : "😴 Tijd voor bed.";
 }
 
-// 🥧 Correcte taart + radiale tekst
+/* =========================
+   WHEEL CREATION
+========================= */
 function createWheel(options){
     const angle = 360 / options.length;
 
-    // Achtergrond taartpunten
+    // Taart achtergrond
     let gradient = "conic-gradient(";
     options.forEach((_,i)=>{
         const start = i*angle;
@@ -56,21 +58,24 @@ function createWheel(options){
     // Oude labels verwijderen
     wheel.querySelectorAll(".label").forEach(l=>l.remove());
 
-    // Nieuwe labels radiaal plaatsen
+    // Radiale tekst (wijzend naar centrum)
     options.forEach((option,i)=>{
         const label = document.createElement("div");
         label.className="label";
 
-        const rotate = i*angle + angle/2;
+        const midAngle = i*angle + angle/2;
 
         label.style.transform =
-            `rotate(${rotate}deg) translate(0,-120px) rotate(-${rotate}deg)`;
+            `rotate(${midAngle}deg) translate(0,-130px)`;
 
         label.innerText = option;
         wheel.appendChild(label);
     });
 }
 
+/* =========================
+   SPIN LOGIC
+========================= */
 function spinWheel(){
     if(spinning) return;
 
@@ -79,7 +84,7 @@ function spinWheel(){
 
     let options=[...baseOptions];
 
-    // 🐍 THIMO SABOTAGE
+    // 🐍 Thimo sabotage
     if(name.toLowerCase()==="thimo"){
         options=[
             "Geef 1 slok 😈",
@@ -97,16 +102,23 @@ function spinWheel(){
     const angle=360/options.length;
     const randomIndex=Math.floor(Math.random()*options.length);
 
-    // 🔥 Meer rondjes voor meer spanning
-    const extraSpins=8*360;
+    // Normalize huidige rotatie
+    currentRotation = currentRotation % 360;
 
-    const stopAngle=360-(randomIndex*angle)-(angle/2);
-    const total=currentRotation+extraSpins+stopAngle;
+    // Pointer staat op 0° (12 uur)
+    const targetAngle = 360 - (randomIndex * angle + angle/2);
+
+    const extraSpins = 8 * 360;
+
+    const totalRotation = currentRotation + extraSpins + targetAngle;
 
     spinning=true;
     spinBtn.disabled=true;
 
-    wheel.style.transform=`rotate(${total}deg)`;
+    wheel.style.transition =
+        `transform ${SPIN_DURATION}ms cubic-bezier(0.1,0.9,0.2,1)`;
+
+    wheel.style.transform=`rotate(${totalRotation}deg)`;
 
     const interval=setInterval(()=>{
         const computed = getComputedStyle(wheel).transform;
@@ -116,8 +128,11 @@ function spinWheel(){
         let deg=Math.atan2(matrix.b,matrix.a)*(180/Math.PI);
         if(deg<0) deg+=360;
 
-        const active=Math.floor((360-deg)/angle)%options.length;
-        liveResult.innerText=options[active];
+        const active =
+            Math.floor(((360 - deg) % 360) / angle);
+
+        liveResult.innerText=
+            options[active % options.length];
 
     },100);
 
@@ -130,14 +145,16 @@ function spinWheel(){
         updateScores(name,result);
         if(result.includes("ATJE")) confettiBurst();
 
-        currentRotation=total%360;
+        currentRotation = totalRotation % 360;
         spinning=false;
         spinBtn.disabled=false;
 
     },SPIN_DURATION);
 }
 
-// -------- SCORES --------
+/* =========================
+   SCORES
+========================= */
 function updateScores(name,result){
     if(!scores[name]) scores[name]=0;
     if(result.includes("Drink")||result==="ATJE!!! 🍻"){
@@ -160,7 +177,9 @@ function resetScores(){
     updateScoreBoard();
 }
 
-// 🎉 CONFETTI
+/* =========================
+   CONFETTI
+========================= */
 function confettiBurst(){
     const canvas=document.getElementById("confetti");
     const ctx=canvas.getContext("2d");
