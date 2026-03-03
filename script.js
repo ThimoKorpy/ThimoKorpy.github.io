@@ -1,19 +1,18 @@
-// == TEXEL DRINK RAD ==
-
 let scores = JSON.parse(localStorage.getItem("texelScores")) || {};
 let spinning = false;
 let currentRotation = 0;
+
 const SPIN_DURATION = 8000;
 
 const baseOptions = [
-    "Drink 1 slok 🍺",
-    "Drink 2 slokken 🍺",
-    "Drink 3 slokken 🍺",
-    "ATJE!!! 🍻",
-    "Geef 1 slok 😈",
-    "Geef 2 slokken 😈",
-    "Geef 3 slokken 😈",
-    "Geef een ATJE weg 😈🍻"
+    "Drink 1 slok",
+    "Drink 2 slokken",
+    "Drink 3 slokken",
+    "ATJE!!!",
+    "Geef 1 slok",
+    "Geef 2 slokken",
+    "Geef 3 slokken",
+    "Geef een ATJE weg"
 ];
 
 const colors = [
@@ -21,7 +20,7 @@ const colors = [
     "#cc33ff","#ff9933","#00cccc","#ff6699"
 ];
 
-const wheelSvg = document.getElementById("wheelSvg");
+const wheel = document.getElementById("wheel");
 const liveResult = document.getElementById("liveResult");
 const spinBtn = document.getElementById("spinBtn");
 
@@ -39,108 +38,93 @@ function checkTime(){
         : "😴 Tijd voor bed.";
 }
 
-// 🎡 build SVG wheel
-function createSvgWheel(options){
-    wheelSvg.innerHTML=""; // clear
+// create wheel slices
+function createWheel(options){
+    const angle = 360/options.length;
 
-    const center = 170; 
-    const radius = 150;
-    const angle = 360 / options.length;
+    // conic gradient
+    let grad = "conic-gradient(";
+    options.forEach((opt,i)=>{
+        const start = i*angle;
+        const end = (i+1)*angle;
+        grad += `${colors[i%colors.length]} ${start}deg ${end}deg`;
+        if(i<options.length-1) grad+=",";
+    });
+    grad+=")";
+    wheel.style.background=grad;
 
-    options.forEach((opt,i) => {
-        const startAngle = i*angle;
-        const endAngle = startAngle + angle;
-
-        // path for pie
-        const x1 = center + radius*Math.cos(Math.PI*(startAngle)/180);
-        const y1 = center + radius*Math.sin(Math.PI*(startAngle)/180);
-        const x2 = center + radius*Math.cos(Math.PI*(endAngle)/180);
-        const y2 = center + radius*Math.sin(Math.PI*(endAngle)/180);
-
-        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-        path.setAttribute("d",
-            `M${center},${center} L${x1},${y1} A${radius},${radius} 0 0,1 ${x2},${y2} Z`);
-        path.setAttribute("fill", colors[i%colors.length]);
-        wheelSvg.appendChild(path);
-
-        // add label
-        const textAngle = startAngle + angle/2;
-        const text = document.createElementNS("http://www.w3.org/2000/svg","text");
-        text.setAttribute("x",center);
-        text.setAttribute("y",center);
-        text.setAttribute("dominant-baseline","middle");
-        text.setAttribute("text-anchor","middle");
-        // position along radius
-        const tx = center + (radius/2)*Math.cos(Math.PI*textAngle/180);
-        const ty = center + (radius/2)*Math.sin(Math.PI*textAngle/180);
-        text.setAttribute("transform",
-            `translate(${tx},${ty}) rotate(${textAngle+90})`);
-        text.textContent = opt;
-        text.style.fontSize = "13px";
-        text.style.userSelect = "none";
-        wheelSvg.appendChild(text);
+    // labels
+    wheel.querySelectorAll(".label").forEach(l=>l.remove());
+    options.forEach((opt,i)=>{
+        const label=document.createElement("div");
+        label.className="label";
+        label.innerText=opt;
+        wheel.appendChild(label);
     });
 }
 
-// 🎯 Spin logic
+// spin
 function spinWheel(){
     if(spinning) return;
 
-    const name=document.getElementById("nameInput").value.trim();
+    const name = document.getElementById("nameInput").value.trim();
     if(!name) return alert("Vul eerst je naam in!");
 
-    let options=[...baseOptions];
+    let options = [...baseOptions];
     if(name.toLowerCase()==="thimo"){
         options=[
-            "Geef 1 slok 😈","Geef 2 slokken 😈","Geef 3 slokken 😈",
-            "Geef een ATJE weg 😈🍻","Geef een ATJE weg 😈🍻",
-            "Geef een ATJE weg 😈🍻","Geef een ATJE weg 😈🍻"
+            "Geef 1 slok","Geef 2 slokken","Geef 3 slokken",
+            "Geef een ATJE weg","Geef een ATJE weg",
+            "Geef een ATJE weg","Geef een ATJE weg"
         ];
     }
 
-    createSvgWheel(options);
+    createWheel(options);
 
     const angle = 360/options.length;
     const randomIndex = Math.floor(Math.random()*options.length);
-
     currentRotation = currentRotation % 360;
     const targetAngle = 360 - (randomIndex*angle + angle/2);
-    const extraSpins = 8*360;
-
-    const total = currentRotation + extraSpins + targetAngle;
+    const total = currentRotation + 8*360 + targetAngle;
 
     spinning=true;
     spinBtn.disabled=true;
 
-    wheelSvg.style.transition = `transform ${SPIN_DURATION}ms cubic-bezier(0.1,0.9,0.2,1)`;
-    wheelSvg.style.transform = `rotate(${total}deg)`;
+    wheel.style.transform=`rotate(${total}deg)`;
 
     const interval = setInterval(()=>{
-        const computed = getComputedStyle(wheelSvg).transform;
-        if(computed==="none") return;
-
-        const matrix = new DOMMatrix(computed);
+        const matrix = new DOMMatrix(getComputedStyle(wheel).transform);
         let deg = Math.atan2(matrix.b,matrix.a)*(180/Math.PI);
         if(deg<0) deg+=360;
-
-        const idx = Math.floor(((360 - deg)%360)/angle);
-        liveResult.innerText = options[idx%options.length];
+        const idx = Math.floor(((360-deg)%360)/angle);
+        liveResult.innerText=options[idx%options.length];
     },100);
 
     setTimeout(()=>{
         clearInterval(interval);
-        const result = options[randomIndex];
-        liveResult.innerText = "🎉 " + result;
-        updateScores(name,result);
-        if(result.includes("ATJE")) confettiBurst();
-        currentRotation = total % 360;
+        liveResult.innerText="🎉 "+options[randomIndex];
+        updateScores(name,options[randomIndex]);
+        currentRotation = total%360;
         spinning=false;
         spinBtn.disabled=false;
     },SPIN_DURATION);
 }
 
-// scores & confetti (same as before)
-function updateScores(name,result){if(!scores[name]) scores[name]=0; if(result.includes("Drink")||result==="ATJE!!! 🍻"){scores[name]++;} localStorage.setItem("texelScores",JSON.stringify(scores));}
-function updateScoreBoard(){document.getElementById("scoreBoard").innerHTML = Object.entries(scores).map(([n,s])=> `<p>${n}: ${s} drankjes</p>`).join("");}
-function resetScores(){localStorage.removeItem("texelScores"); scores={}; updateScoreBoard();}
-function confettiBurst(){ const canvas=document.getElementById("confetti"); const ctx=canvas.getContext("2d"); canvas.width=window.innerWidth; canvas.height=window.innerHeight; for(let i=0;i<300;i++){ ctx.fillStyle=`hsl(${Math.random()*360},100%,50%)`; ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,6,6);} setTimeout(()=>ctx.clearRect(0,0,canvas.width,canvas.height),2000);}
+// scores
+function updateScores(name,result){
+    if(!scores[name]) scores[name]=0;
+    if(result.includes("Drink")||result==="ATJE!!!"){scores[name]++;}
+    localStorage.setItem("texelScores",JSON.stringify(scores));
+}
+function updateScoreBoard(){
+    const board=document.getElementById("scoreBoard");
+    board.innerHTML="";
+    for(let name in scores){
+        board.innerHTML+=`<p>${name}: ${scores[name]} drankjes</p>`;
+    }
+}
+function resetScores(){
+    localStorage.removeItem("texelScores");
+    scores={};
+    updateScoreBoard();
+}
