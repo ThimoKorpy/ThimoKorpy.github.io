@@ -1,61 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="nl">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Welcome</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			height: 100vh;
-			flex-direction: column;
-			margin: 0;
-		}
-
-		h1,
-		h2 {
-			margin: 10px;
-		}
-	</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texel Drink Trip 🍺</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-	<h1>Goede<span id="groet-nederlands">dag</span> vreemdeling!<span id="tijdOmTeSlapen"></span></h1>
-	<h2>Neem gerust een kijkje om je heen en wie weet wat je tegen komt...</h2>
+<div id="landing" class="page active">
+    <h1>🍺 TEXEL DRINK PORTAL 🍺</h1>
+    <button onclick="showPage('timePage')">⏰ Check de Tijd</button>
+    <button onclick="showPage('wheelPage')">🎡 Draai het Rad</button>
+    <button onclick="showPage('scorePage')">🏆 Scorebord</button>
+</div>
 
-	<script>
-		function updateTextOnLoad() {
-			const tijd = new Date();
-			const uren = tijd.getHours();
+<div id="timePage" class="page">
+    <h2>⏰ Hoe laat is het?</h2>
+    <p id="timeResult"></p>
+    <button onclick="checkTime()">Check Nu</button>
+    <button onclick="showPage('landing')">⬅ Terug</button>
+</div>
 
-			const groet = document.getElementById('groet-nederlands');
-      const slapenJij = document.getElementById('tijdOmTeSlapen');
+<div id="wheelPage" class="page">
+    <h2>🎡 HET GROTE TEXEL RAD</h2>
+    <input type="text" id="nameInput" placeholder="Vul je naam in">
+    <div class="wheel-container">
+        <div id="wheel"></div>
+    </div>
+    <button onclick="spinWheel()">DRAAI!</button>
+    <h3 id="wheelResult"></h3>
+    <button onclick="showPage('landing')">⬅ Terug</button>
+</div>
 
-			if (uren >= 0 && uren < 6) {
-				// Nacht (00:00 - 06:00)
-				groet.textContent = "nacht";        // Goedenacht
-				tijdOmTeSlapen.textContent = "</br>Misschien is het slim om te gaan slapen...";        // Veel te laat/vroeg, slapen jij
-			} else if (uren >= 6 && uren < 12) {
-				// Morning (06:00 - 12:00)
-				groet.textContent = "morgen";       // Goedemorgen
-			} else if (uren >= 12 && uren < 18) {
-				// Afternoon (12:00 - 18:00)
-				groet.textContent = "middag";       // Goedemiddag
-			} else {
-				// Evening (18:00 - 00:00)
-				groet.textContent = "avond";        // Goedeavond
-			}
-		}
+<div id="scorePage" class="page">
+    <h2>🏆 Scorebord</h2>
+    <div id="scoreBoard"></div>
+    <button onclick="resetScores()">Reset Scores</button>
+    <button onclick="showPage('landing')">⬅ Terug</button>
+</div>
 
-		// Run the function on page load
-		window.onload = updateTextOnLoad;
-	</script>
+<canvas id="confetti"></canvas>
+<audio id="atjeSound" src="atje.mp3"></audio>
 
+<script src="script.js"></script>
 </body>
-
 </html>
