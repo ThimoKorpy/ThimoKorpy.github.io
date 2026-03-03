@@ -1,7 +1,3 @@
-// =====================
-// TEXEL DRINK MACHINE 🍺
-// =====================
-
 let scores = JSON.parse(localStorage.getItem("texelScores")) || {};
 let spinning = false;
 let currentRotation = 0;
@@ -44,23 +40,33 @@ function checkTime(){
 
 // -------- CREATE WHEEL --------
 function createWheel(options){
-    wheel.innerHTML="";
     const angle = 360 / options.length;
 
+    // 1️⃣ Maak taart-achtergrond
+    let gradient = "conic-gradient(";
+    options.forEach((_,i)=>{
+        const start = i*angle;
+        const end = (i+1)*angle;
+        gradient += `${colors[i % colors.length]} ${start}deg ${end}deg`;
+        if(i < options.length-1) gradient += ",";
+    });
+    gradient += ")";
+    wheel.style.background = gradient;
+
+    // 2️⃣ Tekst labels
+    wheel.querySelectorAll(".label").forEach(l=>l.remove());
+
     options.forEach((option,i)=>{
-        const segment=document.createElement("div");
-        segment.className="segment";
-        segment.style.background=colors[i % colors.length];
-        segment.style.transform=
-            `rotate(${angle*i}deg) skewY(${90-angle}deg)`;
+        const label = document.createElement("div");
+        label.className="label";
 
-        const text=document.createElement("span");
-        text.innerText=option;
-        text.style.transform=
-            `skewY(-${90-angle}deg) rotate(${angle/2}deg)`;
+        const rotate = i*angle + angle/2;
 
-        segment.appendChild(text);
-        wheel.appendChild(segment);
+        label.style.transform =
+            `rotate(${rotate}deg) translate(110px) rotate(-${rotate}deg)`;
+
+        label.innerText = option;
+        wheel.appendChild(label);
     });
 }
 
@@ -100,8 +106,10 @@ function spinWheel(){
     wheel.style.transform=`rotate(${total}deg)`;
 
     const interval=setInterval(()=>{
-        const style=window.getComputedStyle(wheel);
-        const matrix=new DOMMatrix(style.transform);
+        const computed = getComputedStyle(wheel).transform;
+        if(computed==="none") return;
+
+        const matrix=new DOMMatrix(computed);
         let deg=Math.atan2(matrix.b,matrix.a)*(180/Math.PI);
         if(deg<0) deg+=360;
 
@@ -116,7 +124,6 @@ function spinWheel(){
         liveResult.innerText="🎉 "+result;
 
         updateScores(name,result);
-
         if(result.includes("ATJE")) confettiBurst();
 
         currentRotation=total%360;
