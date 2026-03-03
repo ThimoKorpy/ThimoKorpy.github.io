@@ -1,0 +1,56 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    background: linear-gradient(135deg,#ff9966,#ff5e62);
+    color: white;
+}
+
+.page { display:none; padding:20px; }
+.active { display:block; }
+
+button {
+    padding:12px 20px;
+    margin:10px;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+input {
+    padding:10px;
+    border-radius:8px;
+    border:none;
+}
+
+.wheel-container {
+    margin:30px auto;
+    width:250px;
+    height:250px;
+    position:relative;
+}
+
+#wheel {
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    background: conic-gradient(
+        #ffcc00 0deg 45deg,
+        #ff4444 45deg 90deg,
+        #33cc33 90deg 135deg,
+        #3399ff 135deg 180deg,
+        #cc33ff 180deg 225deg,
+        #ff9933 225deg 270deg,
+        #00cccc 270deg 315deg,
+        #ff6699 315deg 360deg
+    );
+    transition: transform 4s cubic-bezier(.17,.67,.83,.67);
+}
+
+canvas {
+    position:fixed;
+    top:0;
+    left:0;
+    pointer-events:none;
+}
