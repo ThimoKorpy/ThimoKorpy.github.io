@@ -25,9 +25,12 @@
 <div id="wheelPage" class="page">
     <h2>🎡 HET GROTE TEXEL RAD</h2>
     <input type="text" id="nameInput" placeholder="Vul je naam in">
-    <div class="wheel-container">
+    <div class="wheel-wrapper">
+        <div class="pointer"></div>
         <div id="wheel"></div>
     </div>
+    <h3 id="liveResult">Klaar om te draaien...</h3>
+    
     <button onclick="spinWheel()">DRAAI!</button>
     <h3 id="wheelResult"></h3>
     <button onclick="showPage('landing')">⬅ Terug</button>
