@@ -31,8 +31,8 @@ input {
 
 .wheel-wrapper {
     position: relative;
-    width: 340px;
-    height: 340px;
+    width: 320px;
+    height: 320px;
     margin: 30px auto;
 }
 
@@ -43,29 +43,25 @@ input {
     border:8px solid white;
     position:relative;
     overflow:hidden;
-
-    /* 🔥 Langere & spannendere spin */
-    transition: transform 8s cubic-bezier(0.08,0.9,0.2,1);
+    transition: transform 8s cubic-bezier(0.1,0.9,0.2,1);
 }
 
-/* Radiale tekst */
 .label {
     position:absolute;
-    left:50%;
+    width:100%;
     top:50%;
-    transform-origin:0 0;
-    font-size:14px;
-    font-weight:bold;
+    left:0;
+    transform:translateY(-50%);
     text-align:center;
-    width:140px;
-    margin-left:-70px;
+    font-weight:bold;
+    color:black;
+    font-size:14px;
     pointer-events:none;
 }
 
-/* Pointer */
 .pointer {
     position:absolute;
-    top:-20px;
+    top:-18px;
     left:50%;
     transform:translateX(-50%);
     width:0;
@@ -74,11 +70,4 @@ input {
     border-right:18px solid transparent;
     border-top:35px solid black;
     z-index:10;
-}
-
-canvas {
-    position:fixed;
-    top:0;
-    left:0;
-    pointer-events:none;
 }
